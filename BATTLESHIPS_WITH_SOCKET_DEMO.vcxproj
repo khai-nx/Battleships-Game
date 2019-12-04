@@ -23,6 +23,7 @@
     <ProjectGuid>{2E9EBB35-31C8-4189-A729-A7093B65E8E2}</ProjectGuid>
     <RootNamespace>BATTLESHIPSWITHSOCKETDEMO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>BATTLESHIPS</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -124,18 +125,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="socketKhai.cpp" />
-    <ClCompile Include="Source1.cpp" />
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="Explosion+2.wav" />
+    <Media Include="lose.wav" />
     <Media Include="win.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="socketKhai.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="mapPlayer1.txt" />
     <Text Include="mapPlayer2.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="socketKhai.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

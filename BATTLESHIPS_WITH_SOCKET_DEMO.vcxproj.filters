@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source1.cpp">
+    <ClCompile Include="socketKhai.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="socketKhai.cpp">
+    <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,18 +29,21 @@
     <Media Include="win.wav">
       <Filter>Resource Files</Filter>
     </Media>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="mapPlayer1.txt">
+    <Media Include="lose.wav">
       <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="mapPlayer2.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
+    </Media>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="socketKhai.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="mapPlayer2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="mapPlayer1.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -1,3 +1,4 @@
+//thu vien ham
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma comment(lib, "winmm.lib")
@@ -16,15 +17,17 @@ using namespace std;
 //use MACRO -> Nice
 #define FOR_ALL_POINT_I_J for (int i = 0; i < boardSize; i++)\
 	for (int j = 0; j < boardSize; j++) 
-
+//ten file luu ban do cua 2 ng choi
 const string mapPlayer1 = "mapPlayer1.txt";
 const string mapPlayer2 = "mapPlayer2.txt";
 
+// ki hieu trong ban do
 //some symbols for the game
 const char isWATER = '0';
 const char isHIT = 'X';
 const char isMISS = 'M';
 
+// mau chu
 //some colors for the game
 const char blue[] = "\x1B[34m";
 const char normal[] = "\x1B[0m";
@@ -32,6 +35,7 @@ const char bblue[] = "\x1B[94m";
 const char red[] = "\x1B[31m";
 const char yellow[] = "\x1B[93m";
 
+//lop toa do x,y
 class CORD {
 public:
 	int x;
@@ -42,17 +46,20 @@ public:
 	}
 };
 
+//cau truc nguoi choi gom 4 thanh phan
 struct PLAYER {
-	string map;
-	char** grid = NULL;
-	int boom = 0;
-	int score = 0;
+	string map;	//ten file ban do
+	char** grid = NULL; //mang ban do
+	int boom = 0;	//luu so ten lua= so luot choi
+	int score = 0; //diem
 };
 
-int boardSize = 0;
-int isServer, notServer;
-SOCKET server, client;
+int boardSize = 0; //kich thuoc ban do
+int isServer, notServer; //ng choi 1, ng choi 2
+SOCKET server, client; //luu bien socket
 
+
+//lua chon che do choi
 int SelectMode() {
 	cout << endl << "\n_________" << bblue << "****" << red << " B A T T L E S H I P S " << bblue << "****" << normal << "_________" << endl;
 	cout << endl << "\n\n	     GAME MODE:" << endl;
@@ -62,28 +69,33 @@ int SelectMode() {
 	cout << "|  3. HUMAN VS HUMAN ONLINE MATCH   |" << endl;
 	cout << "-------------------------------------" << endl;
 	int ch = 0;
-
+	
+	//lap lai cho den khi chon dung 1 trong 3
 	while (ch != 1 && ch != 2 && ch != 3) {
 		cout << endl << "To start, please select one game mode...	" << endl;
 		cin >> ch;
 	}
-
+	//tra ve gia tri 1-3
 	return ch;
 }
 
+//tai vao chuong trinh file map
 bool LoadMap(PLAYER* player) {
 
 	ifstream fileInput(player->map);
 	if (fileInput.fail()) return false;
+	// doc kich thuoc
 	fileInput >> boardSize; //Load the size of map(board)
-
 	if (boardSize <= 0) return false;
 
+	//tao bo nho dong
 	//Creat dynamic memory
 	player->grid = new char* [boardSize];
 	for (int i = 0; i < boardSize; i++) {
 		(player->grid)[i] = new char[boardSize];
 	}
+
+	//doc tung diem tren ban do
 	//Read each point in map of player
 	while (!fileInput.eof()) {
 		FOR_ALL_POINT_I_J{
@@ -95,6 +107,7 @@ bool LoadMap(PLAYER* player) {
 	return true;
 }
 
+//kiem tra diem dang duyet co la tau moi khong de cho vao vecto shipName
 bool IsNewShip(vector<char> shipName, char thisPos) {
 
 	for (int k = 0; k < shipName.size(); k++)
@@ -104,6 +117,7 @@ bool IsNewShip(vector<char> shipName, char thisPos) {
 	return false;
 }
 
+//in ra ban do
 void DrawBoard(int thisPlayer, PLAYER player, vector<char> shipName)
 {
 	//Draws the board for a player (thisPlayer)
@@ -132,16 +146,21 @@ void DrawBoard(int thisPlayer, PLAYER player, vector<char> shipName)
 			if (w < 10 && w == 0) cout << " ";
 
 			//Don't show ships, BUT show damage if it's hit
-			int logic = 1;
+			bool isShip = false;
+			//kiem tra diem dang xet co la tau hay khong
+			for (int i = 0; i < shipName.size(); i++) 
+				if (player.grid[h][w] == shipName.at(i)) {
+				isShip = true;
+				break;
+			}
 
-			for (int i = 0; i < shipName.size(); i++) logic = logic && (player.grid[h][w] != shipName.at(i));
-			if (logic)
+			if (!isShip)
 			{
 				if (player.grid[h][w] == isHIT) cout << red << player.grid[h][w] << normal << "  ";
 				else if (player.grid[h][w] == isMISS) cout << yellow << player.grid[h][w] << normal << "  ";
 				else cout << bblue << player.grid[h][w] << normal << "  ";
 			}
-
+			//neu la tau in ra nuoc
 			else
 			{
 				cout << bblue << isWATER << normal << "  ";
@@ -153,9 +172,12 @@ void DrawBoard(int thisPlayer, PLAYER player, vector<char> shipName)
 	cout << "----------------------\n";
 }
 
+//nhan toa do cua nguoi choi 
 bool UserInputAttack(int& x, int& y, int theplayer, int gameMode, PLAYER enemyPlayer)
 {
 	bool goodInput = false;
+
+	//danh voi may
 	if (gameMode == 2 && theplayer == 2) {
 		cout << "\nAI IS ATTACKING ..";
 		//Your mission is to creat x,y for AI
@@ -169,12 +191,14 @@ bool UserInputAttack(int& x, int& y, int theplayer, int gameMode, PLAYER enemyPl
 			srand(time(NULL));
 			vector<CORD> cord; //save all empty point to a vector to select from
 
+			//thuat toan chon diem ban cua may
+			//dau tien chon trong so cac o den
 			//first save all black points
 			FOR_ALL_POINT_I_J
 				if (enemyPlayer.grid[i][j] != isHIT && enemyPlayer.grid[i][j] != isMISS)
 					if (((i % 2 == 1) && (j % 2 == 1)) || ((i % 2 == 0) && (j % 2 == 0)))
 						cord.push_back(CORD(i, j));
-
+			//neu het o den thi chon cac o con lai mot cach ngau nhien
 			//if there are no black points, choose normally
 			if (cord.size() == 0) {
 				FOR_ALL_POINT_I_J
@@ -182,6 +206,7 @@ bool UserInputAttack(int& x, int& y, int theplayer, int gameMode, PLAYER enemyPl
 						cord.push_back(CORD(i, j));
 			}
 
+			//chon ngau nhien toa do x,y
 			int hunt = rand() % cord.size(); //random a point in vector
 			x = cord.at(hunt).x;
 			y = cord.at(hunt).y;
@@ -190,20 +215,24 @@ bool UserInputAttack(int& x, int& y, int theplayer, int gameMode, PLAYER enemyPl
 		goodInput = true;
 		return goodInput;
 	}
+
+	//phan cho nguoi choi nhap
 	cout << "\nPLAYER " << theplayer << ", ENTER COORDINATES TO ATTACK: ";
 	cin >> x >> y; //the first one is horizontal
+	//kiem tre nguoi nhap diem hop le hay khong
 	if (x < 0 || x >= boardSize) return goodInput;
 	if (y < 0 || y >= boardSize) return goodInput;
 	goodInput = true;
 	return goodInput;
 }
 
+//danh cho choi online
 bool UserInputAttackOnline(int& x, int& y, int thePlayer, SOCKET server, SOCKET client)
 {
 	bool goodInput = false;
 	SOCKET target; 
 	int turn;
-
+	
 	if (isServer == 1) { target = client; turn = 1; }
 
 	else { target = server; turn = 2; }
@@ -229,6 +258,7 @@ bool UserInputAttackOnline(int& x, int& y, int thePlayer, SOCKET server, SOCKET 
 	return goodInput;
 }
 
+//kiem tra xem game ket thua hay chua
 int GameOverCheck(PLAYER thisPlayer, int thisIndex, PLAYER enemyPlayer, int enemyIndex, vector<char> shipName)
 {
 	int winner = thisIndex;
@@ -242,6 +272,7 @@ int GameOverCheck(PLAYER thisPlayer, int thisIndex, PLAYER enemyPlayer, int enem
 			}
 		}
 	}
+	//kiem tra so luot choi 
 	if ((enemyPlayer.boom == 0) && (thisPlayer.boom == 0))
 		if (thisPlayer.score > enemyPlayer.score) winner = thisIndex;
 		else if (thisPlayer.score < enemyPlayer.score) winner = enemyIndex;
@@ -253,6 +284,7 @@ int GameOverCheck(PLAYER thisPlayer, int thisIndex, PLAYER enemyPlayer, int enem
 	return winner;
 }
 
+//ham in ra ket qua cuoi 
 void Result(int aWin, PLAYER* player, int gameMode) {
 	system("cls");
 
@@ -294,12 +326,14 @@ void Result(int aWin, PLAYER* player, int gameMode) {
 	system("pause");
 }
 
+//kiem tra kich thuoc cua tau
 int SizeOfShip(PLAYER player1, char shipName) {
 	int count = 0;
 	FOR_ALL_POINT_I_J if (player1.grid[i][j] == shipName) count++;
 	return count;
 }
 
+//ham kiem tra dat tau cua may
 bool IsPlaceable(int x, int y, int dir, PLAYER& player2, char shipName, int shipSize) {
 	bool logic = true;
 	srand(time(NULL));
@@ -372,11 +406,13 @@ bool IsPlaceable(int x, int y, int dir, PLAYER& player2, char shipName, int ship
 	return logic;
 }
 
+//ham cho may dat tau
 void CreatMapAI(PLAYER player1, PLAYER& player2, vector<char> shipName) {
 
 	//Your mission is to creat a mapPlayer2.txt which has AI's map, depending on mapPlayer1.txt
 
 	vector<int> shipSize; //take all the sizes of ships to a equivalent vector like shipName
+	//luu vecto chua kich thuoc cua cac tau
 	for (int thisShip = 0; thisShip < shipName.size(); thisShip++) shipSize.push_back(SizeOfShip(player1, shipName.at(thisShip)));
 
 	srand(time(NULL));
@@ -391,6 +427,7 @@ void CreatMapAI(PLAYER player1, PLAYER& player2, vector<char> shipName) {
 	}
 }
 
+//cai dat server, online
 bool ServerConfig(SOCKET& client, SOCKET& server) {
 	WSADATA WSAData;
 	SOCKADDR_IN serverAddr, clientAddr;
@@ -431,6 +468,7 @@ bool ServerConfig(SOCKET& client, SOCKET& server) {
 	return run;
 }
 
+//cai dat client, khach, online
 bool ClientCofig(SOCKET& client, SOCKET& server) {
 	WSADATA WSAData;
 	SOCKADDR_IN addr;
@@ -457,24 +495,31 @@ bool ClientCofig(SOCKET& client, SOCKET& server) {
 	return true;
 }
 
+
+//ham cho moi luot choi
 bool Attacking(int& thisPlayer, int& aWin, vector<char>& shipName, PLAYER* player, int gameMode) {
 	//Because we are ATTACKING now, the opposite players board is the display board
 	int enemyPlayer;
+	//xac dinh luot choi
 	if (thisPlayer == 1) enemyPlayer = 2;
 	if (thisPlayer == 2) enemyPlayer = 1;
 	system("cls");
+	//ve map
 	DrawBoard(enemyPlayer, player[enemyPlayer], shipName);
-
+	//in ra diem va so luot
 	cout << endl << "PLAYER " << thisPlayer << "'S SCORE: " << player[thisPlayer].score << endl;
 	cout << "PLAYER " << thisPlayer << "'S BOOMS LEFT: " << player[thisPlayer].boom << endl;
 	//Get attack coords from this player
+	//nhan toa do tan cong
 	bool goodInput = false;
 	int x = 0, y = 0;
 	while (goodInput == false) {
 		if (gameMode == 3)	goodInput = UserInputAttackOnline(x, y, thisPlayer, server, client);
 		else goodInput = UserInputAttack(x, y, thisPlayer, gameMode, player[enemyPlayer]);
 	}
+	//giam di 1 luot
 	player[thisPlayer].boom--;
+	//kiem tra toa do ban
 	//Check board; if a ship is there, set as HIT.. otherwise MISS
 	for (int thisShip = 0; thisShip < shipName.size(); thisShip++)
 		if (player[enemyPlayer].grid[x][y] == shipName.at(thisShip))
@@ -492,15 +537,17 @@ bool Attacking(int& thisPlayer, int& aWin, vector<char>& shipName, PLAYER* playe
 	if (player[enemyPlayer].grid[x][y] == isWATER) player[enemyPlayer].grid[x][y] = isMISS;
 
 	system("cls");
+	//ve ban do sau khi ban
 	DrawBoard(enemyPlayer, player[enemyPlayer], shipName);
 	cout << endl;
 	system("pause");
 
 	//Check to see if the game is over
 	//If 0 is returned, nobody has won yet
+	//kiem tra xem game ket thuc 
 	aWin = GameOverCheck(player[thisPlayer], thisPlayer, player[enemyPlayer], enemyPlayer, shipName);
 	if (aWin != 0) return false;
-
+	//dao luot choi
 	//Alternate between each player as we loop back around
 	thisPlayer = (thisPlayer == 1) ? 2 : 1;
 	return true;
@@ -515,8 +562,10 @@ int main()
 	int thisPlayer = 1;
 	int aWin = 0;
 	int gameMode = SelectMode();
+	//che do online
 	if (gameMode == 3) {
 
+		//chon lam server, hay client
 		cout << "\n<If you are player 1, you will be server. Otherwise, if you are player 2, you will be client !!>" << endl
 			<< "\nWhich player do you want to be (1/2)?"<<endl;
 		cin >> isServer;
@@ -551,6 +600,7 @@ int main()
 		do {} while (Attacking(thisPlayer, aWin, shipName, player, gameMode));
 
 	}
+	// choi che do offline
 	else {
 
 		cout << "\nPLEASE SECRETLY CREATE YOUR OWN FLEE IN TXT FILE !!! " << endl;
@@ -566,7 +616,7 @@ int main()
 					if (IsNewShip(shipName, player[1].grid[i][j])) shipName.push_back(player[1].grid[i][j]);
 		}
 		player[1].boom = (player[2].boom = boardSize * boardSize / 2); //config the number of turns = boom
-
+		//neu choi voi may thi tao map trong cho may
 		if (gameMode == 2) {
 			player[2].grid = new char* [boardSize];
 			for (int i = 0; i < boardSize; i++) {
@@ -575,7 +625,7 @@ int main()
 			FOR_ALL_POINT_I_J player[2].grid[i][j] = isWATER;
 
 			cout << "\nAI IS CREATING ITS FLEE ON THE MAP. PLEASE WAIT A MINUTE...\n";
-
+			//cho AI tao map
 			CreatMapAI(player[1], player[2], shipName);
 		}
 		else if (!LoadMap(&player[2])) {
@@ -591,6 +641,7 @@ int main()
 
 
 	}
+	//in ra ket qua
 	Result(aWin, player, gameMode);
 	delete[](player[1].grid);
 	delete[](player[2].grid);

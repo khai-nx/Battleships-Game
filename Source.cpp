@@ -281,6 +281,7 @@ int GameOverCheck(PLAYER thisPlayer, int thisIndex, PLAYER enemyPlayer, int enem
 			for (int k = 0; k < shipName.size(); k++) if (shipName.at(k) == enemyPlayer.grid[h][w])
 			{
 				winner = 0;
+				break;
 			}
 		}
 	}

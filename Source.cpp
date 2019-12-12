@@ -79,6 +79,18 @@ int SelectMode() {
 	return ch;
 }
 
+void EmptyMap(PLAYER player) {
+	ofstream file(player.map);
+	file << boardSize << endl;
+	for (int i = 0; i < boardSize; i++) {
+		for (int j = 0; j < boardSize; j++) {
+			file << '0' << " ";
+		}
+		if (i<boardSize-1) file << endl;
+	}
+	file.close();
+}
+
 //tai vao chuong trinh file map
 bool LoadMap(PLAYER* player) {
 
@@ -294,7 +306,7 @@ void Result(int aWin, PLAYER* player, int gameMode) {
 		cout << "\n\n	WE HAVE A TIE GAME!!! \n\n\n\n";
 	}
 
-	if (gameMode == 1) {
+	if (gameMode == 1 && aWin != 3) {
 		PlaySound(TEXT("win.wav"), NULL, SND_FILENAME | SND_ASYNC);
 		cout << "\n\n	CONGRATULATIONS!!!  PLAYER " << aWin << " HAS WON THE GAME!\n\n\n\n";
 	}
@@ -556,6 +568,7 @@ bool Attacking(int& thisPlayer, int& aWin, vector<char>& shipName, PLAYER* playe
 
 int main()
 {
+
 	PLAYER* player = new PLAYER[3]; //Use player 1 & 2, 0 is ignored
 	player[1].map = mapPlayer1;
 	player[2].map = mapPlayer2;
@@ -564,13 +577,13 @@ int main()
 	int gameMode = SelectMode();
 	//che do online
 	if (gameMode == 3) {
-
 		//chon lam server, hay client
 		cout << "\n<If you are player 1, you will be server. Otherwise, if you are player 2, you will be client !!>" << endl
 			<< "\nWhich player do you want to be (1/2)?"<<endl;
 		cin >> isServer;
 		notServer = (isServer == 1) ? 2 : 1;
-
+		cout << "\nPLEASE ENTER SIZE OF MAP: ";
+		cin >> boardSize;
 		if (isServer == 1) ServerConfig(client, server); else ClientCofig(client, server);
 
 		if (!LoadMap(&player[isServer])) {
@@ -602,6 +615,12 @@ int main()
 	}
 	// choi che do offline
 	else {
+
+		cout << "\nPLEASE ENTER SIZE OF MAP: ";
+		cin >> boardSize;
+
+		EmptyMap(player[1]);
+		EmptyMap(player[2]);
 
 		cout << "\nPLEASE SECRETLY CREATE YOUR OWN FLEE IN TXT FILE !!! " << endl;
 		system("pause");
